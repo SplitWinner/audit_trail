@@ -1,0 +1,43 @@
+{
+  "expected_content_hash": "72304a249571c2d9c9921b2d7836e0d74c372c6a2b507ef063ff0cfa6528a140",
+  "kind": "row",
+  "row": {
+    "away_juice": "-105",
+    "away_line": "1.5",
+    "away_team": "Away 0",
+    "away_team_rotation": "501",
+    "bet_type": "favorite",
+    "category": "game",
+    "confidence": "0.6400",
+    "conformal_coverage_target": "0.90",
+    "conformal_set": [
+      "Home 0"
+    ],
+    "conformal_set_size": 1,
+    "content_hash": "72304a249571c2d9c9921b2d7836e0d74c372c6a2b507ef063ff0cfa6528a140",
+    "dataset": "pb",
+    "date_event": "2099-01-01",
+    "edge": "0.0450",
+    "expected_value": "0.0310",
+    "game_time": "2099-01-01T23:00:00+00:00",
+    "home_juice": "-110",
+    "home_line": "-1.5",
+    "home_team": "Home 0",
+    "home_team_rotation": "500",
+    "id": "9a7e7bc0-575c-53ed-a1f8-707f4f797f77",
+    "intelligence_category": "bet",
+    "kelly_amount": "20.00",
+    "kelly_criterion": "0.0200",
+    "line_source": "consensus",
+    "model_id": "2099_2100_mlb_pb_gamewinner",
+    "payload_schema": "classification.v1",
+    "prediction": "Home 0",
+    "prediction_mode": "live",
+    "prediction_type": "gamewinner",
+    "probability": "0.6400",
+    "recorded_at": "2099-01-01T13:00:00+00:00",
+    "season": "2099_2100",
+    "sharp_money": "home",
+    "sport": "MLB"
+  }
+}

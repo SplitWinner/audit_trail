@@ -1,0 +1,15 @@
+{
+  "_note": "Synthetic fixture \u2014 never a production anchor.",
+  "anchor_date": "2099-01-01",
+  "chain_id": "splitwinner-official-2026",
+  "hash_algorithm": "hmac-sha256",
+  "manifest_hash": "32b3cc64f11f4ba87ed7d84d2a912215a963f9e6e60b7ad92da68f9d67fc3bfb",
+  "manifest_schema_version": 1,
+  "new_model_count": 1,
+  "prediction_count": 6,
+  "prev_anchor_hash": null,
+  "published_at": "2099-01-01T14:00:00+00:00",
+  "report_sha256": null,
+  "salted": true,
+  "sample": true
+}

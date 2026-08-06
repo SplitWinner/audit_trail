@@ -1,0 +1,71 @@
+name: integrity
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  append-only-guard:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+      - name: Enforce append-only ledger artifacts
+        env:
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: python3 .github/scripts/check_append_only.py
+
+  verify-corpus:
+    # Invariant 3: the current verifier verifies EVERYTHING ever published.
+    # A verify.py or SPEC change that breaks any historical artifact fails here
+    # and cannot merge.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Golden vectors
+        run: python3 verify.py vectors
+      - name: Sample chain — Mode A both days, Mode B, Mode D
+        run: |
+          python3 verify.py anchor --date 2099-01-01 \
+            --predictions sample/predictions_subset_2099-01-01.json \
+            --models sample/models_2099-01-01.json \
+            --salt sample/salt_2099-01-01.hex --repo-root sample
+          python3 verify.py anchor --date 2099-01-02 \
+            --predictions sample/predictions_subset_2099-01-02.json \
+            --salt sample/salt_2099-01-02.hex --repo-root sample
+          python3 verify.py content --predictions sample/predictions_full_2099-01-01.json
+          python3 verify.py chain --repo-root sample
+      - name: Published chain — links + schema acceptance
+        run: |
+          python3 verify.py chain
+          python3 - <<'EOF'
+          import json, pathlib, sys
+          sys.path.insert(0, ".")
+          import verify
+          anchors = sorted(pathlib.Path("anchors").glob("*.json"))
+          for path in anchors:
+              anchor = json.loads(path.read_text())
+              version = anchor.get("manifest_schema_version")
+              assert version in verify.MANIFEST_SCHEMA_VERSIONS, (
+                  f"{path.name}: schema v{version} not supported by the current verifier"
+              )
+          print(f"schema acceptance: {len(anchors)} anchors OK")
+          EOF
+      - name: Verifier registry — shipped verify.py is registered
+        run: |
+          python3 - <<'EOF'
+          import hashlib, pathlib
+          digest = hashlib.sha256(pathlib.Path("verify.py").read_bytes()).hexdigest()
+          registry = pathlib.Path("SPEC/VERIFIERS.md").read_text()
+          assert digest in registry, (
+              f"verify.py sha256 {digest} is not registered in SPEC/VERIFIERS.md"
+          )
+          print(f"verifier registered: {digest[:16]}…")
+          EOF

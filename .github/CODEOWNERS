@@ -1,0 +1,4 @@
+# The trust-critical surfaces require owner review.
+/verify.py    @nolindnaidoo
+/SPEC/        @nolindnaidoo
+/.github/     @nolindnaidoo

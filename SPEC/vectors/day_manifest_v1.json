@@ -1,0 +1,47 @@
+{
+  "anchor_date": "2099-01-01",
+  "expected_manifest_hash": "32b3cc64f11f4ba87ed7d84d2a912215a963f9e6e60b7ad92da68f9d67fc3bfb",
+  "kind": "day_manifest",
+  "new_models": [
+    {
+      "artifact_sha256": "85f923437aadc1597dc689060f9c91f3655edf05909b6e035b37f8d6d53bbbc9",
+      "model_id": "2099_2100_mlb_pb_gamewinner",
+      "recorded_at": "2099-01-01T09:00:00+00:00"
+    }
+  ],
+  "predictions": [
+    {
+      "content_hash": "72304a249571c2d9c9921b2d7836e0d74c372c6a2b507ef063ff0cfa6528a140",
+      "id": "9a7e7bc0-575c-53ed-a1f8-707f4f797f77",
+      "recorded_at": "2099-01-01T13:00:00+00:00"
+    },
+    {
+      "content_hash": "1a6e579197393ef3ccf40e013021d692770a9187df7f3b575c404c237a9e41df",
+      "id": "fd5944d5-d13b-52fd-84c3-a626853e181f",
+      "recorded_at": "2099-01-01T13:01:00+00:00"
+    },
+    {
+      "content_hash": "6f95cc0a3799ea3853f3108139de4e50b01b7545310e655f60b0be1f16324fdb",
+      "id": "dd949875-435b-53b2-a510-8c82b539b53d",
+      "recorded_at": "2099-01-01T13:02:00+00:00"
+    },
+    {
+      "content_hash": "20afe96940d682c974afcbf16d27a24cff551cba6095bb99a4f5c059526b788b",
+      "id": "22d5c9a4-733a-5b36-94df-9cbfcaa27810",
+      "recorded_at": "2099-01-01T13:03:00+00:00"
+    },
+    {
+      "content_hash": "06ab13a5f0e9ea4570cb57a5399113e9c274b0aca292138135e586440250a1df",
+      "id": "d1177c6f-5da0-551e-a41e-ce1e51e3f5ed",
+      "recorded_at": "2099-01-01T13:04:00+00:00"
+    },
+    {
+      "content_hash": "74f45272863bb14f654f8747caa35e04c83a4b329cda29fc04247b001e6ed4a3",
+      "id": "7a3e53aa-e40f-5064-923f-63291ca05335",
+      "recorded_at": "2099-01-01T13:05:00+00:00"
+    }
+  ],
+  "prev_anchor_hash": null,
+  "report_sha256": null,
+  "salt_hex": "80355d1075ab3b514c00f9c3e45f511e1c0d833cc5915ea00b2488246f99da77"
+}

@@ -1,0 +1,48 @@
+# Canonicalization — byte-level rules
+
+Every hash in this ledger is computed over bytes produced by exactly these rules. A
+conforming implementation in any language must reproduce them byte-for-byte; the golden
+vectors in [`vectors/`](./vectors/) are the conformance test.
+
+## JSON serialization
+
+1. Object keys sorted lexicographically (Unicode code-point order), at every depth.
+2. Compact separators: `,` between items, `:` between key and value — no whitespace.
+3. Non-ASCII characters escaped as `\uXXXX` (ASCII-only output), then encoded UTF-8.
+4. **No implicit coercion.** A value that JSON cannot represent is an error, never a
+   silent `str()` conversion. Non-finite floats (`NaN`, `Infinity`) are rejected.
+5. Numeric-valued *measurements* (lines, juice, probabilities, edges, stakes) are
+   serialized by the writer as **fixed-precision decimal strings** (e.g. `"0.6400"`,
+   `"-110"`), so canonical bytes never depend on any language's float formatting.
+   Structural integers (counts, set sizes, schema versions) remain JSON numbers.
+
+## Row content hash
+
+`content_hash = sha256(canonical(projection ∪ {"payload_schema": <name>}))` where the
+projection takes exactly the fields listed in the row's payload schema (missing fields
+serialize as `null`). See [`payloads/`](./payloads/).
+
+## Day manifest hash
+
+```
+payload = canonical({
+  "chain_id":         "splitwinner-official-2026",
+  "anchor_date":      "YYYY-MM-DD",
+  "predictions":      [{id, content_hash, recorded_at}…]  sorted by (content_hash, id),
+  "new_models":       [{model_id, artifact_sha256, recorded_at}…] sorted by model_id,
+  "prev_anchor_hash": sha256 of the previous anchor FILE bytes (null for genesis),
+  "report_sha256":    sha256 of the bound daily report file (null if none),
+})
+manifest_hash = HMAC-SHA256(key = salt, message = payload)
+```
+
+The sort tie-break `(content_hash, id)` makes ordering fully deterministic even for
+identical hashes. The salt is 32 random bytes, generated per day, stored privately,
+written as exactly 64 lowercase hex characters wherever it is exchanged — no other
+encoding is accepted.
+
+## What is deliberately outside the hashes
+
+The anchor file's human-readable fields (counts, policy block, timestamps) — they are
+*disclosed* by the anchor and bound transitively by the next day's `prev_anchor_hash`
+over the whole file, but the manifest hash itself covers only the payload above.
