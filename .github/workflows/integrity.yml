@@ -42,6 +42,12 @@ jobs:
             --salt sample/salt_2099-01-02.hex --repo-root sample
           python3 verify.py content --predictions sample/predictions_full_2099-01-01.json
           python3 verify.py chain --repo-root sample
+      - name: Attestation bindings — every anchor carries both roots
+        # Mode E is structural and offline: it proves each .rekor record
+        # describes the anchor it sits beside. The cryptography is checked by
+        # rekor-cli / ots outside CI (SPEC/attestation.md). Passes vacuously
+        # while the chain is empty, and starts biting the first published day.
+        run: python3 verify.py rekor
       - name: Published chain — links + schema acceptance
         run: |
           python3 verify.py chain

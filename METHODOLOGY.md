@@ -2,16 +2,24 @@
 
 ## What is proven
 
-1. **Existence in time.** Each day's anchor is timestamped into Bitcoin via
-   OpenTimestamps. A prediction covered by an anchor demonstrably existed no later than
-   that anchor's Bitcoin block — independent of git, GitHub, or SplitWinner itself.
-2. **Integrity.** Ledger rows are hashed at write time; the day manifest covers every
+1. **Existence in time, twice.** Each day's anchor is attested into two independent
+   roots ([`SPEC/attestation.md`](./SPEC/attestation.md)): a Bitcoin timestamp via
+   OpenTimestamps, and a Sigstore Rekor transparency-log entry. A prediction covered by
+   an anchor demonstrably existed no later than that anchor's Bitcoin block and no later
+   than its log inclusion — independent of git, GitHub, or SplitWinner itself, and
+   independent of each other. Neither root can be checked away by the failure of the
+   other.
+2. **Attribution.** The Rekor entry carries a signature over the anchor's bytes by a key
+   whose public half is published in [`KEYS/`](./KEYS/). A reader verifies not only when
+   an anchor existed but that this operator issued it — a property a timestamp alone
+   does not provide.
+3. **Integrity.** Ledger rows are hashed at write time; the day manifest covers every
    row; the anchor chain covers every day. Any after-the-fact edit breaks a hash
    someone else can check.
-3. **Continuity.** Each anchor commits to the previous anchor's file bytes
+4. **Continuity.** Each anchor commits to the previous anchor's file bytes
    (`prev_anchor_hash`), so the sequence of days is itself tamper-evident, and gaps are
    visible rather than erasable.
-4. **Performance claims.** Each daily report's bytes are bound into the next anchor
+5. **Performance claims.** Each daily report's bytes are bound into the next anchor
    (`report_sha256`) — published metrics inherit the same Bitcoin timestamps as the
    predictions they describe.
 
@@ -36,8 +44,10 @@ rest on them.
    registrations, the previous anchor's file hash, and the bound report hash are
    canonically serialized ([`SPEC/canonicalization.md`](./SPEC/canonicalization.md))
    and sealed under a fresh 32-byte salt: `manifest_hash = HMAC-SHA256(salt, payload)`.
-3. The anchor file is committed here, stamped with OpenTimestamps, and the proof is
-   upgraded to a confirmed Bitcoin attestation on the following days.
+3. The anchor file is committed here, signed and submitted to Rekor within seconds, and
+   stamped with OpenTimestamps; the Bitcoin proof is upgraded to a confirmed attestation
+   on the following days. Both attestation records sit beside the anchor as siblings —
+   never inside it, since an identifier cannot be part of the bytes that produce it.
 4. Salts stay private and are released to customers under contract — the salt prevents
    dictionary reconstruction of picks from the public manifest while allowing full
    verification by anyone holding the data. Mode B (`content`) needs no salt.

@@ -8,6 +8,7 @@ is **append-only**: entries are added, never modified or removed. CI enforces it
 | [`canonicalization.md`](./canonicalization.md) | The byte-level serialization rules every hash in this repo is computed over |
 | [`payloads/`](./payloads/) | Row payload schemas — one file per `payload_schema` value, added as new prediction types ship. Registered: `classification.v1` (predictions), `correction.v1` (supersession), `void.v1` (unresolved events) |
 | [`vectors/`](./vectors/) | Golden vectors: known inputs → known digests. `verify.py vectors` must reproduce all of them; CI runs it on every push |
+| [`attestation.md`](./attestation.md) | The two attestation roots — Bitcoin and transparency log — what each proves, artifact layout, key policy |
 | [`VERIFIERS.md`](./VERIFIERS.md) | The verifier release registry: version, sha256, date, what changed |
 
 ## The two invariants the registry exists to protect
@@ -52,6 +53,7 @@ day manifest  (type-blind: id/content_hash/recorded_at triples
                + prev_anchor_hash + report_sha256)     → manifest_hash (HMAC-SHA256, per-day salt)
 anchor file   (public: hashes + counts + policy)       → sha256 chained into the next day
 .ots proof    (per anchor file)                        → Bitcoin block attestation
+.rekor record (per anchor file)                        → transparency-log inclusion + signature
 ```
 
 The day manifest is deliberately **type-blind** — new prediction types (margin of

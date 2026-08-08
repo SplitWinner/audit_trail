@@ -6,6 +6,7 @@ Subcommands:
   content  Mode B — recompute per-row content hashes from full rows
   chain    Mode D — verify the prev_anchor_hash links across all anchors
   bitcoin  Mode C — check the OpenTimestamps Bitcoin attestations
+  rekor    Mode E — check the Sigstore Rekor transparency-log bindings
   vectors  self-test against SPEC/vectors golden vectors
 
 Design invariants (see SPEC/ and INTEGRITY.md):
@@ -370,6 +371,74 @@ def _verify_bitcoin(args: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------------------
+# Mode E — rekor (transparency-log binding, structural only)
+#
+# Deliberately does NOT check signatures or inclusion proofs: no Python stdlib
+# module verifies signatures, and adding a cryptography dependency would cost
+# the property that this whole ledger checks with one dependency-free file.
+# What it proves is the binding — that the .rekor record beside an anchor
+# describes THAT anchor's bytes — which is exactly the claim a reader needs
+# before trusting rekor-cli's cryptographic result. See SPEC/attestation.md.
+# ---------------------------------------------------------------------------
+
+_REKOR_REQUIRED = ("log_index", "entry_uuid", "integrated_time", "log_id",
+                   "artifact_sha256", "signature", "public_key")
+
+
+def _verify_rekor(args: argparse.Namespace) -> int:
+    repo = Path(args.repo_root).resolve()
+    anchors_dir = repo / "anchors"
+    if not anchors_dir.is_dir():
+        print("REFUSE  no anchors/ directory (run from repo root?)")
+        return 2
+    targets = (
+        [anchors_dir / f"{args.date}.json"]
+        if args.date
+        else sorted(p for p in anchors_dir.glob("*.json"))
+    )
+    if not targets:
+        print("PASS  no anchors yet")
+        return 0
+    failures = 0
+    for path in targets:
+        rek_path = path.with_suffix(".json.rekor")
+        if not rek_path.exists():
+            print(f"FAIL  {path.name}: no .rekor record")
+            failures += 1
+            continue
+        try:
+            rec = json.loads(rek_path.read_text())
+        except json.JSONDecodeError as exc:
+            print(f"FAIL  {rek_path.name}: not valid JSON ({exc})")
+            failures += 1
+            continue
+        missing = [f for f in _REKOR_REQUIRED if f not in rec]
+        if missing:
+            print(f"FAIL  {rek_path.name}: missing field(s) {', '.join(missing)}")
+            failures += 1
+            continue
+        digest = _file_sha256(path)
+        if rec["artifact_sha256"] != digest:
+            print(f"FAIL  {rek_path.name}: binds {str(rec['artifact_sha256'])[:16]}…, file is {digest[:16]}…")
+            failures += 1
+            continue
+        try:
+            anchor = json.loads(path.read_text())
+            published = str(anchor.get("published_at") or "")
+        except json.JSONDecodeError:
+            published = ""
+        integrated = str(rec["integrated_time"])
+        if published and integrated < published:
+            print(f"FAIL  {rek_path.name}: integrated_time {integrated} precedes published_at {published}")
+            failures += 1
+            continue
+        print(f"PASS  {path.name}: rekor entry {rec['log_index']} binds {digest[:16]}… at {integrated}")
+    if failures == 0:
+        print("NOTE  binding only — run rekor-cli for the signature and inclusion proof (SPEC/attestation.md)")
+    return 1 if failures else 0
+
+
+# ---------------------------------------------------------------------------
 # vectors — self-test against SPEC/vectors
 # ---------------------------------------------------------------------------
 
@@ -417,7 +486,7 @@ def main() -> int:
         description=(
             "Independent verifier for the SplitWinner audit_trail official ledger. "
             "Subcommands: anchor (Mode A), content (Mode B), chain (Mode D), "
-            "bitcoin (Mode C), vectors (self-test)."
+            "bitcoin (Mode C), rekor (Mode E), vectors (self-test)."
         )
     )
     parser.add_argument("--version", action="version", version=f"verify.py sha256 {_self_sha256()}")
@@ -444,6 +513,11 @@ def main() -> int:
     p_btc.add_argument("--offline", action="store_true")
     p_btc.add_argument("--repo-root", default=".")
     p_btc.set_defaults(func=_verify_bitcoin)
+
+    p_rek = sub.add_parser("rekor", help="Mode E: check transparency-log bindings")
+    p_rek.add_argument("--date")
+    p_rek.add_argument("--repo-root", default=".")
+    p_rek.set_defaults(func=_verify_rekor)
 
     p_vec = sub.add_parser("vectors", help="self-test against SPEC/vectors")
     p_vec.add_argument("--repo-root", default=".")
