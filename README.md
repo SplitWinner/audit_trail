@@ -2,9 +2,10 @@
 
 Every SplitWinner prediction is hashed into an immutable database ledger the moment it
 is made, and each day's ledger is sealed into a salted manifest, chained to the
-previous day, and timestamped into the **Bitcoin blockchain** via OpenTimestamps —
-before games settle. This repository is the public half of that system: the anchors,
-the proofs, and a single-file verifier anyone can run.
+previous day, and attested into **two independent roots** — the Bitcoin blockchain via
+OpenTimestamps, and the Sigstore Rekor transparency log — before games settle. This
+repository is the public half of that system: the anchors, the proofs, and a
+single-file verifier anyone can run.
 
 **Receipts, never the recipe.** The ledger proves *when* predictions existed and that
 they were never altered. It does not expose how they are made.
@@ -18,18 +19,25 @@ cd audit_trail
 python3 verify.py vectors                 # self-test against the golden vectors
 python3 verify.py chain                   # walk the prev_anchor_hash links
 python3 verify.py bitcoin                 # check Bitcoin attestations (needs `ots`)
+python3 verify.py rekor                   # check transparency-log bindings
 python3 verify.py anchor --date …         # recompute a day (contract holders: rows + salt)
 python3 verify.py content --predictions … # recompute per-row hashes from full rows
 ```
 
-Modes `vectors`, `chain`, `anchor`, and `content` are pure standard library with no
-network access. `bitcoin` uses the pinned OpenTimestamps client
+Modes `vectors`, `chain`, `anchor`, `content`, and `rekor` are pure standard library
+with no network access. `bitcoin` uses the pinned OpenTimestamps client
 (`pip install -r requirements-bitcoin.txt`); its online form is the binding check.
+`rekor` proves each transparency-log record binds the anchor it sits beside; the
+signature and inclusion proof are checked with `rekor-cli` — see
+[`SPEC/attestation.md`](./SPEC/attestation.md) for why the split exists.
 
 ## How it fits together
 
 - [`SPEC/`](./SPEC/) — the append-only registry: canonicalization rules, payload
-  schemas, golden vectors, verifier releases. Start with [`SPEC/README.md`](./SPEC/README.md).
+  schemas, golden vectors, verifier releases, and the attestation design. Start with
+  [`SPEC/README.md`](./SPEC/README.md).
+- [`KEYS/`](./KEYS/) — every public key that has ever signed an anchor, kept forever so
+  historical transparency-log entries stay checkable.
 - [`METHODOLOGY.md`](./METHODOLOGY.md) — what is proven, what is not, and the daily protocol.
 - [`INTEGRITY.md`](./INTEGRITY.md) — the invariants and how they are enforced.
 - [`OPERATIONS.md`](./OPERATIONS.md) — the operational reality, including its limits.

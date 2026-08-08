@@ -15,8 +15,14 @@
 4. **Schemas are forward-only.** New manifest or payload schema versions apply from
    their registration date; published artifacts are never migrated. (The alpha violated
    this once — `audit_trail_alpha/ALPHA.md` — which is why it is now mechanical.)
-5. **The SPEC registry is append-only** — canonicalization rules, payload schemas,
-   vectors, and verifier releases accumulate; they are never edited in place.
+5. **The SPEC registry is append-only from genesis** — canonicalization rules, payload
+   schemas, vectors, and verifier releases accumulate; from the first anchor onward they
+   are never edited in place. Before genesis the schema files may still be corrected:
+   no row has been hashed under a schema yet, so there is nothing for the rule to
+   protect, and forcing a version bump for a pre-genesis wording fix would leave a
+   never-used schema in the registry forever. The window closes mechanically and
+   permanently the moment `anchors/` is non-empty — the CI guard reads the tree, and an
+   unreadable tree is treated as started so the strict rule is the safe default.
 
 ## Enforcement
 

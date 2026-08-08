@@ -25,8 +25,10 @@ of the code, are what pins behavior.
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
+from datetime import datetime, timedelta
 import sys
 import uuid
 from pathlib import Path
@@ -136,6 +138,34 @@ def _build_day(
     return _SAMPLE / "anchors" / f"{date}.json"
 
 
+def _write_rekor_fixture(anchor_path: Path, log_index: int) -> None:
+    """A synthetic transparency-log record for the sample chain.
+
+    Mode E checks the BINDING — that a .rekor record describes the anchor beside
+    it — and deliberately never checks signatures (see SPEC/attestation.md), so a
+    synthetic record exercises the mode completely. Without these fixtures the CI
+    step passes vacuously on an empty anchors/ and the mode ships untested, which
+    is not a state this repository gets to be in.
+
+    Signature and key bytes are obvious placeholders: no sample artifact is ever
+    submitted to the real log, and nothing here is a production attestation.
+    """
+    anchor = json.loads(anchor_path.read_text())
+    published = datetime.strptime(anchor["published_at"], "%Y-%m-%dT%H:%M:%S+00:00")
+    integrated = published + timedelta(seconds=7)
+    record = {
+        "log_index": log_index,
+        "entry_uuid": hashlib.sha256(anchor_path.name.encode()).hexdigest(),
+        "integrated_time": integrated.strftime("%Y-%m-%dT%H:%M:%S+00:00"),
+        "log_id": hashlib.sha256(b"sample-log").hexdigest(),
+        "artifact_sha256": hashlib.sha256(anchor_path.read_bytes()).hexdigest(),
+        "signature": base64.b64encode(b"sample-signature-not-a-real-attestation").decode(),
+        "public_key": base64.b64encode(b"sample-public-key-not-a-real-key").decode(),
+        "sample": True,
+    }
+    _write_json(anchor_path.with_suffix(".json.rekor"), record)
+
+
 def main() -> None:
     day1 = "2099-01-01"
     day2 = "2099-01-02"
@@ -160,7 +190,11 @@ def main() -> None:
         }
     ]
     anchor1 = _build_day(day1, 6, models_day1, None, None)
-    _build_day(day2, 4, [], anchor1, report_sha)
+    anchor2 = _build_day(day2, 4, [], anchor1, report_sha)
+    # Written after the anchors exist: a .rekor binds the anchor's final bytes,
+    # so generating it earlier would bind a file that no longer matches.
+    _write_rekor_fixture(anchor1, 1)
+    _write_rekor_fixture(anchor2, 2)
 
     # Golden vectors — freeze the canonical encodings.
     row = _fake_row(0, day1)

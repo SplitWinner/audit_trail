@@ -45,9 +45,12 @@ jobs:
       - name: Attestation bindings — every anchor carries both roots
         # Mode E is structural and offline: it proves each .rekor record
         # describes the anchor it sits beside. The cryptography is checked by
-        # rekor-cli / ots outside CI (SPEC/attestation.md). Passes vacuously
-        # while the chain is empty, and starts biting the first published day.
-        run: python3 verify.py rekor
+        # rekor-cli / ots outside CI (SPEC/attestation.md). The sample chain
+        # carries .rekor fixtures so the mode is exercised for real on every
+        # push; the published tree passes vacuously until the first anchor.
+        run: |
+          python3 verify.py rekor --repo-root sample
+          python3 verify.py rekor
       - name: Published chain — links + schema acceptance
         run: |
           python3 verify.py chain

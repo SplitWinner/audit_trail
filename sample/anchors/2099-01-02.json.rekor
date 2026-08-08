@@ -1,0 +1,10 @@
+{
+  "artifact_sha256": "57e08ea796d5e80f526ddc7842494d922ac8337c2656238355586fac50b44949",
+  "entry_uuid": "4a2511caefbb7a84fc02043dd7f9315ef12cf6065d923675236745a6978f565e",
+  "integrated_time": "2099-01-02T14:00:07+00:00",
+  "log_id": "665b62a6975cb08fb3d334e5e7fd98de88c089b204a6c09b9a7d05d8dd91fa73",
+  "log_index": 2,
+  "public_key": "c2FtcGxlLXB1YmxpYy1rZXktbm90LWEtcmVhbC1rZXk=",
+  "sample": true,
+  "signature": "c2FtcGxlLXNpZ25hdHVyZS1ub3QtYS1yZWFsLWF0dGVzdGF0aW9u"
+}
