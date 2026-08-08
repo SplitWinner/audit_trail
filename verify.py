@@ -86,6 +86,16 @@ PAYLOAD_SCHEMAS: dict[str, tuple[str, ...]] = {
         "edge", "expected_value", "kelly_criterion", "kelly_amount",
         "sharp_money", "line_source",
     ),
+    # Supersession and disposition rows. Registered 2026-08-08, before the chain
+    # opened, so the verifier has known them for the whole of published history —
+    # a reader never needs a newer verifier to check an older correction.
+    "correction.v1": (
+        "supersedes_content_hash", "supersedes_id", "reason_code", "note",
+        "corrected_content_hash",
+    ),
+    "void.v1": (
+        "voids_content_hash", "voids_id", "disposition", "effective_at", "note",
+    ),
 }
 
 

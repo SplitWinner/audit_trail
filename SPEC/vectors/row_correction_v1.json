@@ -1,0 +1,13 @@
+{
+  "expected_content_hash": "c81e017b9e1dbd0958ca0cf45542b289b07db50f1dcf6f9777d6040c01d614df",
+  "kind": "row",
+  "row": {
+    "content_hash": "c81e017b9e1dbd0958ca0cf45542b289b07db50f1dcf6f9777d6040c01d614df",
+    "corrected_content_hash": null,
+    "note": "Written twice by a retried job; this record supersedes the second write.",
+    "payload_schema": "correction.v1",
+    "reason_code": "duplicate",
+    "supersedes_content_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "supersedes_id": "00000000-0000-4000-8000-000000000000"
+  }
+}

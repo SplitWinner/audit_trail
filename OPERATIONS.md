@@ -35,7 +35,18 @@ detection, append-only, no silent edits.
   surface is starting and stopping it. Pauses are visible as chain gaps and are
   disclosed, not backfilled — **a stale day is never anchored late as if it were live**.
 - Salt custody: per-day salts live in the private database alongside the anchors
-  table; released under contract; never logged, never committed here.
+  table; released under contract; never logged, never committed here. A salt is
+  unrecoverable if lost — losing one permanently forecloses manifest-mode verification
+  for that day, though content mode and the Bitcoin attestation are unaffected. Salts
+  are covered by the database's zero-loss objective below; there is no second copy
+  elsewhere, because a second copy is a second thing to leak.
+- Attestation dependency: Bitcoin proof is obtained through OpenTimestamps calendars,
+  which are third-party infrastructure this ledger does not control. If the calendars
+  become unavailable, anchoring continues and publication continues — the anchor files
+  and the chain do not depend on them — but new anchors accumulate without Bitcoin
+  attestation until a replacement path is in place, and that state is a disclosable
+  event from the first affected day. Attestations already confirmed are unaffected by
+  any later calendar outage; they live in the blockchain, not in the calendar.
 
 ## Recovery targets
 

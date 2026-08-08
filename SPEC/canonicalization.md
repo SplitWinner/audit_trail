@@ -15,6 +15,22 @@ vectors in [`vectors/`](./vectors/) are the conformance test.
    serialized by the writer as **fixed-precision decimal strings** (e.g. `"0.6400"`,
    `"-110"`), so canonical bytes never depend on any language's float formatting.
    Structural integers (counts, set sizes, schema versions) remain JSON numbers.
+6. **Timestamps** are strings in exactly one form: `YYYY-MM-DDTHH:MM:SS+00:00`.
+   UTC always, offset written as `+00:00` and never `Z`, seconds always present and
+   never fractional — a sub-second component is truncated (not rounded) by the writer
+   before serialization. A timestamp carrying any other offset is converted to UTC
+   first. This rule exists because databases and language runtimes disagree freely
+   about timestamp rendering: Postgres will return microseconds on one row and none on
+   the next, and most ISO-8601 libraries emit `Z`. Either variation changes the bytes
+   and therefore the hash for otherwise identical data, which would break the promise
+   that a conforming implementation in any language reproduces these digests.
+   Applies to every hashed timestamp — `recorded_at`, `game_time`, and any added by a
+   future payload schema.
+7. **Dates** (`anchor_date`, `date_event`) are `YYYY-MM-DD` and are calendar dates in
+   **UTC**, matching the anchor's UTC coverage window described in
+   [`../OPERATIONS.md`](../OPERATIONS.md). A row belongs to the anchor day whose UTC
+   window contains its `recorded_at`. Sport-local conventions — the 5 AM ET sports day
+   the product uses elsewhere — never determine ledger membership.
 
 ## Row content hash
 
