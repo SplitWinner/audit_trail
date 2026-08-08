@@ -67,7 +67,13 @@ anchor is a failure, not a discrepancy to reconcile.
 
 ## The anchor signing key
 
-One long-lived keypair signs anchor files. The public half is committed at
+One long-lived **ECDSA P-256** keypair signs anchor files, with SHA-256 as the digest.
+That combination is not a preference — it is what Rekor's `hashedrekord` verifier
+accepts while keeping the logged artifact hash identical to the anchor file's sha256.
+ed25519 was tested first and rejected by the log (`unsupported hash algorithm:
+"SHA-256" not in [SHA-512]`); signing ed25519 over SHA-512 would have logged a digest
+that does not equal the anchor's identity hash, breaking the binding this whole layer
+depends on. The public half is committed at
 [`../KEYS/anchor-signing.pub`](../KEYS/anchor-signing.pub); the private half lives in
 the same custody as the day salts ([`../OPERATIONS.md`](../OPERATIONS.md)).
 

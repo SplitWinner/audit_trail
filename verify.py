@@ -38,6 +38,7 @@ import re
 import shutil
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 CHAIN_ID = "splitwinner-official-2026"
@@ -384,6 +385,25 @@ def _verify_bitcoin(args: argparse.Namespace) -> int:
 _REKOR_REQUIRED = ("log_index", "entry_uuid", "integrated_time", "log_id",
                    "artifact_sha256", "signature", "public_key")
 
+# Independent clocks, not a trust boundary — see the ordering check below.
+_CLOCK_SKEW_TOLERANCE_SECONDS = 300
+
+
+def _timestamp_gap_seconds(integrated: str, published: str) -> int | None:
+    """Seconds by which `integrated` precedes `published`; 0 if it follows.
+
+    Returns None when either value is not the canonical timestamp form, which
+    the field-shape check upstream has already reported.
+    """
+    fmt = "%Y-%m-%dT%H:%M:%S+00:00"
+    try:
+        i = datetime.strptime(integrated, fmt)
+        p = datetime.strptime(published, fmt)
+    except ValueError:
+        return None
+    delta = int((p - i).total_seconds())
+    return max(delta, 0)
+
 
 def _verify_rekor(args: argparse.Namespace) -> int:
     repo = Path(args.repo_root).resolve()
@@ -428,8 +448,17 @@ def _verify_rekor(args: argparse.Namespace) -> int:
         except json.JSONDecodeError:
             published = ""
         integrated = str(rec["integrated_time"])
-        if published and integrated < published:
-            print(f"FAIL  {rek_path.name}: integrated_time {integrated} precedes published_at {published}")
+        # Ordering with tolerance. The log integrates seconds after publication,
+        # so integrated_time should follow published_at — but the publisher's
+        # clock and the log's are independent, and a few seconds of skew is
+        # normal and says nothing about integrity. Only a gap large enough to
+        # mean "attested before the bytes existed" is a finding.
+        skew = _timestamp_gap_seconds(integrated, published) if published else 0
+        if skew is not None and skew > _CLOCK_SKEW_TOLERANCE_SECONDS:
+            print(
+                f"FAIL  {rek_path.name}: integrated_time {integrated} precedes "
+                f"published_at {published} by {skew}s"
+            )
             failures += 1
             continue
         print(f"PASS  {path.name}: rekor entry {rec['log_index']} binds {digest[:16]}… at {integrated}")
