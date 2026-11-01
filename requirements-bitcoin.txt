@@ -4,4 +4,4 @@
 # Pinned to the version this repository's proofs were verified against. The
 # `ots` CLI it provides also requires a local Bitcoin Core node for the
 # trustless check — see verify_bitcoin.py's docstring.
-opentimestamps-client==0.7.2
+opentimestamps-client==0.8.0
